@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://willow-crescent-sec-school.onrender.com/api',
 });
 
 export default api;
