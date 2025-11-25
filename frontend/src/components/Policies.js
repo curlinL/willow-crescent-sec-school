@@ -4,6 +4,7 @@ import api from '../api';
 
 const Policies = () => {
   const [docs, setDocs] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchDocs = async () => {
@@ -11,7 +12,7 @@ const Policies = () => {
         const { data } = await api.get('/documents');
         setDocs(data);
       } catch {
-        // ignore for now
+        setError('Unable to load the latest documents right now.');
       }
     };
     fetchDocs();
@@ -43,6 +44,8 @@ const Policies = () => {
         <div className="col-lg-7">
           <div className="neo-card">
             <h4 className="mb-4">Downloads</h4>
+
+            {error && <p className="alert alert-warning">{error}</p>}
 
             {docs.length === 0 && (
               <>

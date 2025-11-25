@@ -8,13 +8,33 @@ const AdminPortal = () => {
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [token, setToken] = useState('');
+  const [isValidating, setIsValidating] = useState(true);
 
   // Check for token on mount
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-      setIsLoggedIn(true);
+    const storedToken = localStorage.getItem('adminToken');
+    if (!storedToken) {
+      setIsValidating(false);
+      return;
     }
+
+    const validateToken = async () => {
+      try {
+        await api.get('/admin/me', {
+          headers: { Authorization: `Bearer ${storedToken}` },
+        });
+        setToken(storedToken);
+        setIsLoggedIn(true);
+      } catch (err) {
+        localStorage.removeItem('adminToken');
+        setStatus('Session expired. Please log in again.');
+      } finally {
+        setIsValidating(false);
+      }
+    };
+
+    validateToken();
   }, []);
 
   const handleLogin = async (e) => {
@@ -23,6 +43,7 @@ const AdminPortal = () => {
     try {
       const { data } = await api.post('/auth/login', { username, password });
       localStorage.setItem('adminToken', data.token);
+      setToken(data.token);
       setStatus('Login successful!');
       setIsLoggedIn(true);
     } catch (err) {
@@ -30,10 +51,19 @@ const AdminPortal = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    setToken('');
+    setIsLoggedIn(false);
+    setStatus('You have been logged out.');
+  };
+
   return (
     <div className="container">
-      {isLoggedIn ? (
-        <AdminDashboard />
+      {isValidating ? (
+        <p className="text-center py-5">Validating session...</p>
+      ) : isLoggedIn ? (
+        <AdminDashboard token={token} onLogout={handleLogout} />
       ) : (
         <div className="row g-4">
           <div className="col-lg-4">

@@ -10,6 +10,11 @@ const router = express.Router();
 // All admin routes require authentication
 router.use(authenticate);
 
+// GET /api/admin/me - basic profile for token validation
+router.get('/me', (req, res) => {
+  res.json({ id: req.user.id, username: req.user.username });
+});
+
 // GET /api/admin/messages - list contact messages
 router.get('/messages', async (req, res) => {
   try {

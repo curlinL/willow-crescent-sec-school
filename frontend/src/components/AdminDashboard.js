@@ -2,20 +2,28 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ token, onLogout = () => {} }) => {
   const [messages, setMessages] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [docs, setDocs] = useState([]);
   const [newGallery, setNewGallery] = useState({ title: '', category: '', imageUrl: '' });
   const [newDoc, setNewDoc] = useState({ title: '', type: 'policy', year: '', url: '' });
   const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem('adminToken');
-  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+  const authHeader = token
+    ? { headers: { Authorization: `Bearer ${token}` } }
+    : null;
 
   // Fetch data
   useEffect(() => {
+    if (!authHeader) {
+      setLoading(false);
+      return;
+    }
+
     const fetchAll = async () => {
+      setLoading(true);
       try {
         const [msgRes, galRes, docRes] = await Promise.all([
           api.get('/admin/messages', authHeader),
@@ -27,11 +35,18 @@ const AdminDashboard = () => {
         setDocs(docRes.data);
       } catch (err) {
         console.error(err);
-        setStatus('Failed to load admin data.');
+        if (err.response?.status === 401) {
+          setStatus('Session expired. Please log in again.');
+          onLogout?.();
+        } else {
+          setStatus('Failed to load admin data.');
+        }
+      } finally {
+        setLoading(false);
       }
     };
     fetchAll();
-  }, []);
+  }, [token, onLogout]);
 
   const handleGalleryChange = (e) => {
     const { name, value } = e.target;
@@ -45,6 +60,10 @@ const AdminDashboard = () => {
   const addGalleryItem = async (e) => {
     e.preventDefault();
     setStatus('');
+    if (!authHeader) {
+      setStatus('You are not authenticated.');
+      return;
+    }
     try {
       const { data } = await api.post('/admin/gallery', newGallery, authHeader);
       setGallery([data, ...gallery]);
@@ -57,6 +76,10 @@ const AdminDashboard = () => {
 
   const deleteGalleryItem = async (id) => {
     if (!window.confirm('Delete this gallery item?')) return;
+    if (!authHeader) {
+      setStatus('You are not authenticated.');
+      return;
+    }
     try {
       await api.delete(`/admin/gallery/${id}`, authHeader);
       setGallery(gallery.filter((item) => item._id !== id));
@@ -68,6 +91,10 @@ const AdminDashboard = () => {
   const addDocument = async (e) => {
     e.preventDefault();
     setStatus('');
+    if (!authHeader) {
+      setStatus('You are not authenticated.');
+      return;
+    }
     try {
       const payload = { ...newDoc };
       if (!payload.year) delete payload.year;
@@ -82,6 +109,10 @@ const AdminDashboard = () => {
 
   const deleteDocument = async (id) => {
     if (!window.confirm('Delete this document?')) return;
+    if (!authHeader) {
+      setStatus('You are not authenticated.');
+      return;
+    }
     try {
       await api.delete(`/admin/documents/${id}`, authHeader);
       setDocs(docs.filter((doc) => doc._id !== id));
@@ -92,8 +123,14 @@ const AdminDashboard = () => {
 
   return (
     <div className="container my-5">
-      <h2>Admin Dashboard</h2>
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <h2 className="m-0">Admin Dashboard</h2>
+        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onLogout}>
+          Logout
+        </button>
+      </div>
       {status && <p className="small text-danger">{status}</p>}
+      {loading && <p className="text-muted">Loading data...</p>}
 
       {/* Contact Messages */}
       <section className="mt-4">

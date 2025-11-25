@@ -16,8 +16,23 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const allowAllOrigins = allowedOrigins.includes('*');
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowAllOrigins || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Static folder for documents (e.g. /docs/code-of-conduct-2024.pdf)
@@ -38,4 +53,14 @@ app.get('/api', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  const status = err.status || 500;
+  res.status(status).json({ message: status === 500 ? 'Server error' : err.message });
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

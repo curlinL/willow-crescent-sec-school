@@ -32,7 +32,7 @@ const Hero = () => {
               Willow Crescent Secondary is where community values meet academic excellence. Join the family in Eldos.
             </p>
             <div className="d-flex gap-3 mt-4 justify-content-lg-start justify-content-center">
-              <a href="#admissions" className="btn-custom">
+              <a href="#about" className="btn-custom">
                 Enroll Now
               </a>
               <a href="#about" className="btn-custom btn-outline">

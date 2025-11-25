@@ -49,6 +49,7 @@ const fallbackGallery = [
 
 const Gallery = () => {
   const [items, setItems] = useState(fallbackGallery);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchGallery = async () => {
@@ -56,7 +57,7 @@ const Gallery = () => {
         const { data } = await api.get('/gallery');
         if (data && data.length) setItems(data);
       } catch {
-        // use fallback
+        setError('Showing featured highlights while the gallery loads.');
       }
     };
     fetchGallery();
@@ -68,6 +69,7 @@ const Gallery = () => {
         <h2>Campus Gallery</h2>
         <p className="mb-5">A glimpse into life at Willow Crescent.</p>
       </div>
+      {error && <p className="alert alert-warning text-center">{error}</p>}
       <div className="row g-4">
         {items.map((item) => (
           <div className="col-md-4 col-sm-6" key={item._id}>
