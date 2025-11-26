@@ -87,11 +87,9 @@ const Policies = () => {
                   {getLabelIcon(doc.type)}
                   <strong>{doc.title}</strong>
                 </div>
-                <a href={doc.url} target="_blank" rel="noreferrer">
-                  <button className="btn btn-sm btn-outline-dark">
-                    {doc.type === 'calendar' ? 'View' : 'Download'}
-                  </button>
-                </a>
+                <a href={doc.url} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-dark">
+                  {doc.type === 'calendar' ? 'View' : 'Download'}
+              </a>
               </div>
             ))}
           </div>
