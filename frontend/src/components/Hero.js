@@ -55,7 +55,7 @@ const Hero = () => {
                 }}
               ></div>
               <img
-                src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80"
+                src="https://schoolhive.co.za/wp-content/uploads/2023/05/Willow-Crescent-Secondary-School-Eldorado-Park-Admissions-Contact-Details-800x600.jpeg"
                 alt="Students"
                 className="img-fluid"
                 style={{
