@@ -9,6 +9,12 @@ const fallbackBaseURL =
 const baseURL = (process.env.REACT_APP_API_URL || fallbackBaseURL).trim();
 
 // Allow frontend to target different API hosts per environment
-const api = axios.create({ baseURL });
+const api = axios.create({ 
+  baseURL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export default api;
