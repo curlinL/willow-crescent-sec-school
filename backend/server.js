@@ -16,20 +16,36 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+// Default allowed origins for development and production
+const defaultOrigins = [
+  'http://localhost:3000',
+  'https://willow-crescent-sec-school.vercel.app',
+];
+
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
   .map((origin) => origin.trim())
-  .filter(Boolean);
+  .filter(Boolean)
+  .concat(defaultOrigins);
+
 const allowAllOrigins = allowedOrigins.includes('*');
 
 const corsOptions = {
   origin(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
     if (!origin || allowAllOrigins || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Also allow any vercel.app subdomain for preview deployments
+    if (origin && origin.endsWith('.vercel.app')) {
       return callback(null, true);
     }
     console.warn(`CORS rejected origin: ${origin}`);
     return callback(null, false);
   },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 // Middleware
