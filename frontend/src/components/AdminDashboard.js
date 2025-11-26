@@ -11,12 +11,12 @@ const AdminDashboard = ({ token, onLogout = () => {} }) => {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const authHeader = token
-    ? { headers: { Authorization: `Bearer ${token}` } }
-    : null;
-
   // Fetch data
   useEffect(() => {
+    const authHeader = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : null;
+
     if (!authHeader) {
       setLoading(false);
       return;
@@ -48,6 +48,10 @@ const AdminDashboard = ({ token, onLogout = () => {} }) => {
     fetchAll();
   }, [token, onLogout]);
 
+  const getAuthHeader = () => token
+    ? { headers: { Authorization: `Bearer ${token}` } }
+    : null;
+
   const handleGalleryChange = (e) => {
     const { name, value } = e.target;
     setNewGallery((prev) => ({ ...prev, [name]: value }));
@@ -60,6 +64,7 @@ const AdminDashboard = ({ token, onLogout = () => {} }) => {
   const addGalleryItem = async (e) => {
     e.preventDefault();
     setStatus('');
+    const authHeader = getAuthHeader();
     if (!authHeader) {
       setStatus('You are not authenticated.');
       return;
@@ -76,6 +81,7 @@ const AdminDashboard = ({ token, onLogout = () => {} }) => {
 
   const deleteGalleryItem = async (id) => {
     if (!window.confirm('Delete this gallery item?')) return;
+    const authHeader = getAuthHeader();
     if (!authHeader) {
       setStatus('You are not authenticated.');
       return;
@@ -91,6 +97,7 @@ const AdminDashboard = ({ token, onLogout = () => {} }) => {
   const addDocument = async (e) => {
     e.preventDefault();
     setStatus('');
+    const authHeader = getAuthHeader();
     if (!authHeader) {
       setStatus('You are not authenticated.');
       return;
@@ -109,6 +116,7 @@ const AdminDashboard = ({ token, onLogout = () => {} }) => {
 
   const deleteDocument = async (id) => {
     if (!window.confirm('Delete this document?')) return;
+    const authHeader = getAuthHeader();
     if (!authHeader) {
       setStatus('You are not authenticated.');
       return;
