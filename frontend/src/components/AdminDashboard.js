@@ -25,6 +25,7 @@ const AdminDashboard = ({ token, onLogout = () => {} }) => {
     const fetchAll = async () => {
       setLoading(true);
       try {
+        // /admin/messages requires auth; /gallery and /documents are public endpoints
         const [msgRes, galRes, docRes] = await Promise.all([
           api.get('/admin/messages', authHeader),
           api.get('/gallery'),
