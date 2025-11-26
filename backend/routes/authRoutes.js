@@ -2,21 +2,40 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const AdminUser = require('../models/AdminUser');
 const { sendVerificationEmail } = require('../config/email');
 
 const router = express.Router();
 
+// Rate limiter for registration - 5 requests per hour per IP
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: { message: 'Too many registration attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiter for verification - 10 requests per hour per IP
+const verifyLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+  message: { message: 'Too many verification attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // POST /api/auth/register
-router.post('/register', async (req, res) => {
+router.post('/register', registerLimiter, async (req, res) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ message: 'Username, email, and password are required' });
   }
 
-  // Basic email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Email validation - comprehensive RFC 5322 compliant pattern
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ message: 'Please provide a valid email address' });
   }
@@ -64,7 +83,7 @@ router.post('/register', async (req, res) => {
 });
 
 // GET /api/auth/verify/:token
-router.get('/verify/:token', async (req, res) => {
+router.get('/verify/:token', verifyLimiter, async (req, res) => {
   const { token } = req.params;
 
   try {
@@ -105,7 +124,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Check if email is verified
-    if (admin.isVerified === false) {
+    if (!admin.isVerified) {
       return res.status(403).json({ message: 'Please verify your email before logging in' });
     }
 
